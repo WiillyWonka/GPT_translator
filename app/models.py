@@ -25,3 +25,4 @@ class Glossary(Base):
     id = Column(Integer, primary_key=True, index=True)
     term = Column(String, unique=True, index=True)
     translation = Column(String)
+    comment = Column(String)

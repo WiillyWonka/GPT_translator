@@ -31,9 +31,13 @@ class ChatSession(ChatSessionBase):
 class GlossaryBase(BaseModel):
     term: str
     translation: str
+    comment: str
 
 class GlossaryCreate(GlossaryBase):
     pass
+
+class GlossaryDelete(BaseModel):
+    term: str
 
 class Glossary(GlossaryBase):
     id: int

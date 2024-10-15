@@ -25,5 +25,20 @@ def create_glossary_entry(db: Session, glossary: schemas.GlossaryCreate):
     db.refresh(db_glossary)
     return db_glossary
 
-def get_glossary_entries(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Glossary).offset(skip).limit(limit).all()
+def delete_glossary_entry(db: Session, term: str):
+    # Находим запись по термину
+    entry = db.query(models.Glossary).filter(models.Glossary.term == term).first()
+    
+    # Если запись не найдена, возвращаем None
+    if entry is None:
+        return None
+    
+    # Удаляем запись из базы данных
+    db.delete(entry)
+    db.commit()
+    
+    # Возвращаем удаленную запись
+    return entry
+
+def get_glossary_entries(db: Session):
+    return db.query(models.Glossary).all()
