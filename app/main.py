@@ -34,11 +34,38 @@ def home(request: Request):
 def create_session(session: schemas.ChatSessionCreate, db: Session = Depends(get_db)):
     return crud.create_chat_session(db=db, session=session)
 
+@app.get("/sessions/ids", response_model=list[int])
+def get_chat_session_ids(db: Session = Depends(get_db)):
+    session_ids = crud.get_all_chat_session_ids(db)
+    return session_ids
+
+@app.get("/sessions/{session_id}/messages", response_model=list[schemas.ChatMessage])
+def get_messages_by_session_id(session_id: int, db: Session = Depends(get_db)):
+    session = crud.get_chat_session(db, session_id=session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail=f"Session with id={session_id} not found")
+    
+    return session.messages
+
+@app.delete("/sessions/{session_id}", response_model=schemas.ChatSession)
+def delete_session(session_id: int, db: Session = Depends(get_db)):
+    # Попытка удаления записи из глоссария
+    deleted_entry = crud.delete_chat_session(db, session_id)
+    
+    # Если запись не найдена, возвращаем ошибку 404
+    if deleted_entry is None:
+        raise HTTPException(status_code=404, detail=f"Session with id={session_id} not found")
+    
+    # Возвращаем удаленную запись
+    return deleted_entry
+
 @app.post("/sessions/{session_id}/messages/", response_model=schemas.ChatMessage)
 def create_message(session_id: int, message: schemas.ChatMessageCreate, db: Session = Depends(get_db)):
     session = crud.get_chat_session(db, session_id=session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    
+    crud.create_chat_message(db=db, message=message, session_id=session_id)
     
     glossary = crud.get_glossary_entries(db)
 
