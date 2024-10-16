@@ -13,7 +13,7 @@ def generate_response(messages, policy, glossary_list: list[Glossary]):
     
     system_promt = policy + "\nГлоссарий:\n" + "\n".join([format_glossary_item(glossary_item) for glossary_item in glossary_list]) + '\n'
 
-    print(system_promt)
+    print([{ "role": "system", "content": system_promt }] + messages)
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",

@@ -16,19 +16,12 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
 with open("config.yaml", 'r', encoding='utf-8') as f:
     config = yaml.safe_load(f)
 
 def get_db():
     with SessionLocal() as db:
         yield db
-
-@app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/sessions/", response_model=schemas.ChatSession)
 def create_session(session: schemas.ChatSessionCreate, db: Session = Depends(get_db)):
