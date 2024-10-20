@@ -1,5 +1,3 @@
-import yaml
-
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -7,6 +5,8 @@ from fastapi.templating import Jinja2Templates
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+
+import yaml
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
@@ -20,6 +20,21 @@ with open("config.yaml", 'r', encoding='utf-8') as f:
     config = yaml.safe_load(f)
 
 assistant = Assistant(**config)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/chat", response_class=HTMLResponse)
+def read_chat(request: Request):
+    return templates.TemplateResponse("chat.html", {"request": request})
+
+@app.get("/glossary", response_class=HTMLResponse)
+def read_glossary_page(request: Request):
+    return templates.TemplateResponse("glossary.html", {"request": request})
 
 def get_db():
     with SessionLocal() as db:
