@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
-from .openai_service import generate_response
+from .openai_service import Assistant
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -18,6 +18,8 @@ app = FastAPI()
 
 with open("config.yaml", 'r', encoding='utf-8') as f:
     config = yaml.safe_load(f)
+
+assistant = Assistant(**config)
 
 def get_db():
     with SessionLocal() as db:
@@ -58,8 +60,6 @@ def create_message(session_id: int, message: schemas.ChatMessageCreate, db: Sess
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    crud.create_chat_message(db=db, message=message, session_id=session_id)
-    
     glossary = crud.get_glossary_entries(db)
 
     # Получаем все сообщения из сессии
@@ -67,10 +67,12 @@ def create_message(session_id: int, message: schemas.ChatMessageCreate, db: Sess
     messages.append({"role": "user", "content": message.content})
     
     # Генерируем ответ от ChatGPT
-    response_content = generate_response(messages, config['policy'], glossary)
+    response_content = assistant(messages, glossary)
     
     # Сохраняем ответ в базу данных
-    response_message = schemas.ChatMessageCreate(role="assistant", content=response_content)
+    response_message = schemas.ChatMessageBase(role="assistant", content=response_content)
+    input_message = schemas.ChatMessageBase(role="user", content=message.content)
+    crud.create_chat_message(db=db, message=input_message, session_id=session_id)
     return crud.create_chat_message(db=db, message=response_message, session_id=session_id)
 
 @app.post("/glossary/", response_model=schemas.Glossary)

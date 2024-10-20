@@ -33,7 +33,7 @@ def delete_chat_session(db: Session, session_id: int):
     # Возвращаем удаленную сессию
     return session
 
-def create_chat_message(db: Session, message: schemas.ChatMessageCreate, session_id: int):
+def create_chat_message(db: Session, message: schemas.ChatMessageBase, session_id: int):
     db_message = models.ChatMessage(**message.model_dump(), session_id=session_id)
     db.add(db_message)
     db.commit()

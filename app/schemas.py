@@ -5,8 +5,8 @@ class ChatMessageBase(BaseModel):
     role: str
     content: str
 
-class ChatMessageCreate(ChatMessageBase):
-    pass
+class ChatMessageCreate(BaseModel):
+    content: str
 
 class ChatMessage(ChatMessageBase):
     id: int
