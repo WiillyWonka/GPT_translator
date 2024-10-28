@@ -48,3 +48,36 @@ h1 {
     margin: 5px 0;
     padding: 10px;
 }
+
+/* New styles for messages */
+/* Existing styles */
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    display: inline-block;
+    max-width: 80%;
+    border: 1px solid #ccc; /* Добавляем рамку */
+    background-color: #fff; /* Добавляем цветной фон */
+}
+
+.user-message {
+    background-color: #d4edda; /* Soft green */
+    color: #155724;
+    text-align: right;
+    float: right;
+    clear: both;
+    border-color: #c3e6cb; /* Цвет рамки для пользовательских сообщений */
+}
+
+.assistant-message {
+    background-color: #cce5ff; /* Soft blue */
+    color: #004085;
+    text-align: left;
+    float: left;
+    clear: both;
+    border-color: #b8daff; /* Цвет рамки для сообщений ассистента */
+}
+
+
