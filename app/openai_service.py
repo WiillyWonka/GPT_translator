@@ -1,6 +1,7 @@
 from typing import Dict, List
 from dotenv import load_dotenv
 from openai import OpenAI
+from loguru import logger
 
 from app.schemas import Glossary
 
@@ -15,6 +16,8 @@ class Assistant:
         self._model = model
         self._policy = policy
         self._temperature = temperature
+
+        logger.info(self._policy)
 
     def __call__(self, messages: List[Dict[str, str]], glossary_list: list[Glossary]):
     
