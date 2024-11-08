@@ -10,8 +10,8 @@
     <h1>Train Dataset Management</h1>
     <div id="train-dataset-container">
         <h2>Add Train Sample</h2>
-        <input type="text" id="foreign-text" placeholder="Foreign Text">
-        <input type="text" id="translation" placeholder="Translation">
+        <textarea id="foreign-text" placeholder="Foreign Text" style="width: 400px; height: 200px;"></textarea>
+        <textarea id="translation" placeholder="Translation" style="width: 400px; height: 200px;"></textarea>
         <button onclick="addTrainSample()">Add Train Sample</button>
 
         <h2>Train Samples IDs</h2>
@@ -24,6 +24,9 @@
 
         <h2>Train Sample Details</h2>
         <div id="train-sample-details"></div>
+
+        <h2>Upload Dataset</h2>
+        <button onclick="uploadDataset()">Upload Dataset</button>
     </div>
     <script src="/static/js/train_dataset.js"></script>
 </body>

@@ -87,5 +87,20 @@ async function loadTrainSamples() {
     });
 }
 
+// New Function for Finetuning
+async function uploadDataset() {
+    const response = await fetch('train_samples/upload', {
+        method: 'POST'
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        alert(`Success: ${data.message}`);
+    } else {
+        alert(`Failed to uploading dataset: ${data.message}`);
+    }
+}
+
 // Load train samples on page load
 loadTrainSamples();

@@ -139,3 +139,11 @@ def get_train_sample_by_id(sample_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Train sample not found")
     
     return train_sample
+
+@app.post("/train_samples/upload", response_model=dict)
+def upload_dataset(db: Session = Depends(get_db)):
+    train_samples = crud.get_train_samples(db)
+    glossary = crud.get_glossary_entries(db)
+    result = assistant.upload_dataset(train_samples, glossary)
+    return {"status": "success", "message": "Messages uploaded", "result": result}
+
