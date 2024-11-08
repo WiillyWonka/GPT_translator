@@ -36,6 +36,10 @@ def read_chat(request: Request):
 def read_glossary_page(request: Request):
     return templates.TemplateResponse("glossary.html", {"request": request})
 
+@app.get("/train_dataset", response_class=HTMLResponse)
+def read_train_dataset_page(request: Request):
+    return templates.TemplateResponse("train_dataset.html", {"request": request})
+
 def get_db():
     with SessionLocal() as db:
         yield db
@@ -59,14 +63,10 @@ def get_messages_by_session_id(session_id: int, db: Session = Depends(get_db)):
 
 @app.delete("/sessions/{session_id}", response_model=schemas.ChatSession)
 def delete_session(session_id: int, db: Session = Depends(get_db)):
-    # Попытка удаления записи из глоссария
     deleted_entry = crud.delete_chat_session(db, session_id)
-    
-    # Если запись не найдена, возвращаем ошибку 404
     if deleted_entry is None:
         raise HTTPException(status_code=404, detail=f"Session with id={session_id} not found")
     
-    # Возвращаем удаленную запись
     return deleted_entry
 
 @app.post("/sessions/{session_id}/messages/", response_model=schemas.ChatMessage)
@@ -77,14 +77,11 @@ def create_message(session_id: int, message: schemas.ChatMessageCreate, db: Sess
     
     glossary = crud.get_glossary_entries(db)
 
-    # Получаем все сообщения из сессии
     messages = [{"role": msg.role, "content": msg.content} for msg in session.messages]
     messages.append({"role": "user", "content": message.content})
     
-    # Генерируем ответ от ChatGPT
     response_content = assistant(messages, glossary)
     
-    # Сохраняем ответ в базу данных
     response_message = schemas.ChatMessageBase(role="assistant", content=response_content)
     input_message = schemas.ChatMessageBase(role="user", content=message.content)
     crud.create_chat_message(db=db, message=input_message, session_id=session_id)
@@ -97,23 +94,48 @@ def create_glossary_entry(glossary: schemas.GlossaryCreate, db: Session = Depend
     except IntegrityError as e:
         db.rollback()
         if "UNIQUE constraint failed" in str(e):
-            raise HTTPException(status_code=400, detail="This term aleady registered")
+            raise HTTPException(status_code=400, detail="This term already registered")
         else:
             raise HTTPException(status_code=500, detail=f"Database error {e}")
 
 @app.delete("/glossary/", response_model=schemas.Glossary)
 def delete_glossary_entry(glossary_term: schemas.GlossaryDelete, db: Session = Depends(get_db)):
-    # Попытка удаления записи из глоссария
     deleted_entry = crud.delete_glossary_entry(db, glossary_term.term)
-    
-    # Если запись не найдена, возвращаем ошибку 404
     if deleted_entry is None:
         raise HTTPException(status_code=404, detail="Term not found")
     
-    # Возвращаем удаленную запись
     return deleted_entry
 
 @app.get("/glossary/", response_model=list[schemas.Glossary])
 def read_glossary(db: Session = Depends(get_db)):
     glossary = crud.get_glossary_entries(db)
     return glossary
+
+@app.post("/train_samples/", response_model=schemas.TrainSample)
+def create_train_sample(train_sample: schemas.TrainSampleCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.create_train_sample(db=db, train_sample=train_sample)
+    except IntegrityError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error {e}")
+
+@app.delete("/train_samples/{sample_id}", response_model=schemas.TrainSample)
+def delete_train_sample(sample_id: int, db: Session = Depends(get_db)):
+    deleted_entry = crud.delete_train_sample(db, sample_id)
+    if deleted_entry is None:
+        raise HTTPException(status_code=404, detail="Train sample not found")
+    
+    return deleted_entry
+
+@app.get("/train_samples/", response_model=list[schemas.TrainSample])
+def read_train_samples(db: Session = Depends(get_db)):
+    train_samples = crud.get_train_samples(db)
+    return train_samples
+
+@app.get("/train_samples/{sample_id}", response_model=schemas.TrainSample)
+def get_train_sample_by_id(sample_id: int, db: Session = Depends(get_db)):
+    train_sample = crud.get_train_sample_by_id(db, sample_id)
+    if train_sample is None:
+        raise HTTPException(status_code=404, detail="Train sample not found")
+    
+    return train_sample

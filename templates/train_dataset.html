@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Dataset</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <h1>Train Dataset Management</h1>
+    <div id="train-dataset-container">
+        <h2>Add Train Sample</h2>
+        <input type="text" id="foreign-text" placeholder="Foreign Text">
+        <input type="text" id="translation" placeholder="Translation">
+        <button onclick="addTrainSample()">Add Train Sample</button>
+
+        <h2>Train Samples IDs</h2>
+        <ul id="train-samples-list"></ul>
+
+        <h2>View/Delete Train Sample</h2>
+        <input type="text" id="sample-id" placeholder="Sample ID">
+        <button onclick="viewTrainSample()">View Train Sample</button>
+        <button onclick="deleteTrainSample()">Delete Train Sample</button>
+
+        <h2>Train Sample Details</h2>
+        <div id="train-sample-details"></div>
+    </div>
+    <script src="/static/js/train_dataset.js"></script>
+</body>
+</html>

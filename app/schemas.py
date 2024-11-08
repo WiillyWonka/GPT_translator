@@ -44,3 +44,19 @@ class Glossary(GlossaryBase):
 
     class Config:
         orm_mode = True
+
+class TrainSampleBase(BaseModel):
+    foreign_text: str
+    translation: str
+
+class TrainSampleCreate(TrainSampleBase):
+    pass
+
+class TrainSampleDelete(BaseModel):
+    id: int
+
+class TrainSample(TrainSampleBase):
+    id: int
+
+    class Config:
+        orm_mode = True

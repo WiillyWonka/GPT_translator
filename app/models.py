@@ -26,3 +26,10 @@ class Glossary(Base):
     term = Column(String, unique=True, index=True)
     translation = Column(String)
     comment = Column(String)
+
+class TrainSample(Base):
+    __tablename__ = "train_samples"
+
+    id = Column(Integer, primary_key=True, index=True)
+    foreign_text = Column(Text, index=True)
+    translation = Column(Text)
