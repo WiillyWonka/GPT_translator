@@ -50,17 +50,19 @@ class Assistant:
         return response.choices[0].message.content
 
     def make_system_promt(self, glossary_list: list[Glossary]):
-        return (
-            self._policy
-            + "\nГлоссарий:\n"
-            + "\n".join(
-                [
-                    format_glossary_item(glossary_item)
-                    for glossary_item in glossary_list
-                ]
-            )
-            + "\n"
-        )
+        # return (
+        #     self._policy
+        #     + "\nГлоссарий:\n"
+        #     + "\n".join(
+        #         [
+        #             format_glossary_item(glossary_item)
+        #             for glossary_item in glossary_list
+        #         ]
+        #     )
+        #     + "\n"
+        # )
+
+        return self._policy
 
     def upload_dataset(
         self,
