@@ -21,25 +21,6 @@ with open("config.yaml", 'r', encoding='utf-8') as f:
 
 assistant = Assistant(**config)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-@app.get("/", response_class=HTMLResponse)
-def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-@app.get("/chat", response_class=HTMLResponse)
-def read_chat(request: Request):
-    return templates.TemplateResponse("chat.html", {"request": request})
-
-@app.get("/glossary", response_class=HTMLResponse)
-def read_glossary_page(request: Request):
-    return templates.TemplateResponse("glossary.html", {"request": request})
-
-@app.get("/train_dataset", response_class=HTMLResponse)
-def read_train_dataset_page(request: Request):
-    return templates.TemplateResponse("train_dataset.html", {"request": request})
-
 def get_db():
     with SessionLocal() as db:
         yield db
