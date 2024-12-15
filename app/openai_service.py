@@ -41,6 +41,7 @@ class Assistant:
     ):
 
         system_promt = self.make_system_promt(glossary_list)
+        print(system_promt)
 
         response = self._client.chat.completions.create(
             model=self._model,

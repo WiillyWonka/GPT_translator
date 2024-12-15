@@ -2,13 +2,27 @@ from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    login = Column(String, unique=True, index=True)
+    role = Column(String)  # "admin" or "user"
+
+    # Связь с ChatSession
+    chat_sessions = relationship("ChatSession", back_populates="user")
+
 class ChatSession(Base):
     __tablename__ = "chat_sessions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    # user_id = Column(String, index=True)
     messages = relationship("ChatMessage", back_populates="session")
 
+    # Связь с User
+    user = relationship("User", back_populates="chat_sessions")
+    
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
