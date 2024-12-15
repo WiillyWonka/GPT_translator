@@ -1,6 +1,19 @@
 from pydantic import BaseModel
 from typing import List
 
+class UserBase(BaseModel):
+    login: str
+    role: str
+
+class UserCreate(UserBase):
+    pass
+
+class User(UserBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
 class ChatMessageBase(BaseModel):
     role: str
     content: str

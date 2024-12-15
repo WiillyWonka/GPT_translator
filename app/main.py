@@ -1,7 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Depends, HTTPException
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -24,6 +21,38 @@ assistant = Assistant(**config)
 def get_db():
     with SessionLocal() as db:
         yield db
+        
+@app.post("/users/", response_model=schemas.UserBase)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.create_user(db=db, user=user)
+    except IntegrityError as e:
+        db.rollback()
+        if "UNIQUE constraint failed" in str(e):
+            raise HTTPException(status_code=400, detail="User with this login already exists")
+        else:
+            raise HTTPException(status_code=500, detail=f"Database error {e}")
+
+@app.get("/users/", response_model=list[schemas.UserBase])
+def get_users(db: Session = Depends(get_db)):
+    user = crud.get_users(db=db)    
+    return user
+
+@app.get("/users/{login}", response_model=schemas.UserBase)
+def get_user_by_login(login: str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_login(db=db, login=login)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return user
+
+@app.delete("/users/{login}", response_model=schemas.UserBase)
+def delete_user(login: str, db: Session = Depends(get_db)):
+    deleted_entry = crud.delete_user_by_login(db, login)
+    if deleted_entry is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return deleted_entry
 
 @app.post("/sessions/", response_model=schemas.ChatSession)
 def create_session(session: schemas.ChatSessionCreate, db: Session = Depends(get_db)):

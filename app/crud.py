@@ -1,6 +1,29 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 
+def create_user(db: Session, user: schemas.UserCreate):
+    db_user = models.User(login=user.login, role=user.role)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def get_users(db: Session):
+    users = db.query(models.User).all()
+    return users
+
+def get_user_by_login(db: Session, login: str):
+    user = db.query(models.User).filter(models.User.login == login).first()
+    return user
+
+def delete_user_by_login(db: Session, login: str):
+    user = db.query(models.User).filter(models.User.login == login).first()
+    if user:
+        db.delete(user)
+        db.commit()
+        return user
+    return None
+
 def create_chat_session(db: Session, session: schemas.ChatSessionCreate):
     db_session = models.ChatSession(user_id=session.user_id)
     db.add(db_session)
