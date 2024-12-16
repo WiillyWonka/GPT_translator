@@ -46,7 +46,7 @@ def get_user_by_login(login: str, db: Session = Depends(get_db)):
     
     return user
 
-@app.delete("/users/{id}", response_model=schemas.User)
+@app.delete("/users/", response_model=schemas.User)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     deleted_entry = crud.delete_user_by_id(db, user_id)
     if deleted_entry is None:
@@ -100,6 +100,7 @@ def create_message(session_id: int, message: schemas.ChatMessageCreate, db: Sess
     crud.create_chat_message(db=db, message=input_message, session_id=session_id)
     return crud.create_chat_message(db=db, message=response_message, session_id=session_id)
 
+
 @app.post("/glossary/", response_model=schemas.Glossary)
 def create_glossary_entry(glossary: schemas.GlossaryCreate, db: Session = Depends(get_db)):
     try:
@@ -112,16 +113,21 @@ def create_glossary_entry(glossary: schemas.GlossaryCreate, db: Session = Depend
             raise HTTPException(status_code=500, detail=f"Database error {e}")
 
 @app.delete("/glossary/", response_model=schemas.Glossary)
-def delete_glossary_entry(glossary_term: schemas.GlossaryDelete, db: Session = Depends(get_db)):
-    deleted_entry = crud.delete_glossary_entry(db, glossary_term.term)
+def delete_glossary_entry(glossary: schemas.GlossaryDelete, db: Session = Depends(get_db)):
+    deleted_entry = crud.delete_glossary_entry(db, glossary.id)
     if deleted_entry is None:
         raise HTTPException(status_code=404, detail="Term not found")
     
     return deleted_entry
 
 @app.get("/glossary/", response_model=list[schemas.Glossary])
-def read_glossary(db: Session = Depends(get_db)):
-    glossary = crud.get_glossary_entries(db)
+def read_general_glossary(db: Session = Depends(get_db)):
+    glossary = crud.get_general_glossary(db)
+    return glossary
+
+@app.get("/glossary/{user_id}", response_model=list[schemas.Glossary])
+def read_user_glossary(user_id: int, db: Session = Depends(get_db)):
+    glossary = crud.get_user_glossary(db, user_id)
     return glossary
 
 @app.post("/train_samples/", response_model=schemas.TrainSample)

@@ -46,12 +46,13 @@ class GlossaryBase(BaseModel):
     term: str
     translation: str
     comment: str
+    user_id: int
 
 class GlossaryCreate(GlossaryBase):
     pass
 
 class GlossaryDelete(BaseModel):
-    term: str
+    id: int
 
 class Glossary(GlossaryBase):
     id: int

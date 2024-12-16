@@ -1,8 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 
-from loguru import logger
-
 from .database import Base
 
 class User(Base):
@@ -16,9 +14,10 @@ class User(Base):
 
     # Связь с ChatSession
     chat_sessions = relationship("ChatSession", back_populates="user")
+    glossary = relationship("Glossary", back_populates="user")
 
     def __repr__(self):
-        logger.info(f"User#{self.id} (login: {self.login}, role: {self.role})")
+        return f"User#{self.id} (login: {self.login}, role: {self.role})"
 
 class ChatSession(Base):
     __tablename__ = "chat_sessions"
@@ -45,9 +44,13 @@ class Glossary(Base):
     __tablename__ = "glossary"
 
     id = Column(Integer, primary_key=True, index=True)
-    term = Column(String, unique=True, index=True)
+    term = Column(String, index=True)
     translation = Column(String)
     comment = Column(String)
+
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    # Связь с User
+    user = relationship("User", back_populates="glossary")
 
 class TrainSample(Base):
     __tablename__ = "train_samples"

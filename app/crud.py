@@ -89,8 +89,8 @@ def create_glossary_entry(db: Session, glossary: schemas.GlossaryCreate):
     db.refresh(db_glossary)
     return db_glossary
 
-def delete_glossary_entry(db: Session, term: str):
-    entry = db.query(models.Glossary).filter(models.Glossary.term == term).first()
+def delete_glossary_entry(db: Session, glossary_id):
+    entry = db.query(models.Glossary).filter(models.Glossary.id == glossary_id).first()
     if entry is None:
         return None
     db.delete(entry)
@@ -99,6 +99,35 @@ def delete_glossary_entry(db: Session, term: str):
 
 def get_glossary_entries(db: Session):
     return db.query(models.Glossary).all()
+
+def get_user_glossary(db: Session, user_id: int):
+    """
+    Получает все экземпляры глоссария, которые относятся к пользователю с указанным id
+
+    :param db: Сессия базы данных SQLAlchemy.
+    :param user_id: Идентификатор пользователя.
+    :return: Список экземпляров глоссария.
+    """
+    # Запрос для получения глоссария пользователя с указанным id и всех администраторов
+    glossary_items = db.query(models.Glossary).join(models.User).filter(
+        (models.User.id == user_id)
+    ).all()
+
+    return glossary_items
+
+def get_general_glossary(db: Session):
+    """
+    Получает все экземпляры глоссария, которые относятся ко всем пользователям с ролью admin.
+
+    :param db: Сессия базы данных SQLAlchemy.
+    :return: Список экземпляров глоссария.
+    """
+    # Запрос для получения глоссария пользователя с указанным id и всех администраторов
+    glossary_items = db.query(models.Glossary).join(models.User).filter(
+        (models.User.role == "admin")
+    ).all()
+
+    return glossary_items
 
 def create_train_sample(db: Session, train_sample: schemas.TrainSampleCreate):
     db_train_sample = models.TrainSample(**train_sample.model_dump())

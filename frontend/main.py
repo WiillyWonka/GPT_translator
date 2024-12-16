@@ -16,10 +16,10 @@ glossary_page = st.Page("glossary.py", title="Глоссарий")
 dataset_page = st.Page("dataset.py", title="Управление датасетом")
 
 if st.session_state.user:
-    pages = [logout_page, info_page, chat_page]
+    pages = [logout_page, info_page, chat_page, glossary_page]
 
     if st.session_state.user.role == 'admin':
-        pages.extend([glossary_page, dataset_page])
+        pages.append(dataset_page)
 
     pg = st.navigation(pages)
 else:
