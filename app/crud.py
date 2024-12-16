@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 
 def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(login=user.login, role=user.role)
+    db_user = models.User(login=user.login, role=user.role, total_input_tokens=0, total_output_tokens=0)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -12,17 +12,46 @@ def get_users(db: Session):
     users = db.query(models.User).all()
     return users
 
+def get_user_by_id(db: Session, user_id: int):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    return user
+
 def get_user_by_login(db: Session, login: str):
     user = db.query(models.User).filter(models.User.login == login).first()
     return user
 
-def delete_user_by_login(db: Session, login: str):
-    user = db.query(models.User).filter(models.User.login == login).first()
+def delete_user_by_id(db: Session, user_id: int):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
     if user:
         db.delete(user)
         db.commit()
         return user
     return None
+
+def increment_user_tokens(db: Session, user_id: int, input_token_count: int, output_token_count: int):
+    """
+    Инкрементирует количество токенов пользователя.
+
+    :param db: Сессия базы данных SQLAlchemy.
+    :param user_id: Идентификатор пользователя.
+    :param input_token_count: Количество входных токенов для добавления.
+    :param output_token_count: Количество выходных токенов для добавления.
+    """
+    # Получаем пользователя по его ID
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+
+    if not user:
+        raise ValueError(f"Пользователь с ID {user_id} не найден.")
+
+    # Инкрементируем количество токенов
+    user.total_input_tokens += input_token_count
+    user.total_output_tokens += output_token_count
+
+    # Фиксируем изменения в базе данных
+    db.commit()
+    db.refresh(user)
+
+    return user
 
 def create_chat_session(db: Session, session: schemas.ChatSessionCreate):
     db_session = models.ChatSession(user_id=session.user_id)

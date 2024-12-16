@@ -1,12 +1,13 @@
 from pydantic import BaseModel
 from typing import List
 
-class UserBase(BaseModel):
+class UserCreate(BaseModel):
     login: str
     role: str
 
-class UserCreate(UserBase):
-    pass
+class UserBase(UserCreate):
+    total_input_tokens: int
+    total_output_tokens: int
 
 class User(UserBase):
     id: int
@@ -29,14 +30,14 @@ class ChatMessage(ChatMessageBase):
         orm_mode = True
 
 class ChatSessionBase(BaseModel):
-    user_id: str
+    user_id: int
+    messages: List[ChatMessage] = []
 
 class ChatSessionCreate(ChatSessionBase):
     pass
 
 class ChatSession(ChatSessionBase):
     id: int
-    messages: List[ChatMessage] = []
 
     class Config:
         orm_mode = True

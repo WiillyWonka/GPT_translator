@@ -4,7 +4,8 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 def logout():
-    st.session_state.user = None
+    for key in st.session_state.keys():
+        del st.session_state[key]
     st.rerun()
 
 login_page = st.Page("login.py", title="Вход", icon=":material/login:")
@@ -15,7 +16,12 @@ glossary_page = st.Page("glossary.py", title="Глоссарий")
 dataset_page = st.Page("dataset.py", title="Управление датасетом")
 
 if st.session_state.user:
-    pg = st.navigation([logout_page, info_page, chat_page, glossary_page, dataset_page])
+    pages = [logout_page, info_page, chat_page]
+
+    if st.session_state.user.role == 'admin':
+        pages.extend([glossary_page, dataset_page])
+
+    pg = st.navigation(pages)
 else:
     pg = st.navigation([login_page])
 

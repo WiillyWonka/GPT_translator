@@ -22,7 +22,7 @@ def get_db():
     with SessionLocal() as db:
         yield db
         
-@app.post("/users/", response_model=schemas.UserBase)
+@app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     try:
         return crud.create_user(db=db, user=user)
@@ -33,12 +33,12 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         else:
             raise HTTPException(status_code=500, detail=f"Database error {e}")
 
-@app.get("/users/", response_model=list[schemas.UserBase])
+@app.get("/users/", response_model=list[schemas.User])
 def get_users(db: Session = Depends(get_db)):
     user = crud.get_users(db=db)    
     return user
 
-@app.get("/users/{login}", response_model=schemas.UserBase)
+@app.get("/users/{login}", response_model=schemas.User)
 def get_user_by_login(login: str, db: Session = Depends(get_db)):
     user = crud.get_user_by_login(db=db, login=login)
     if user is None:
@@ -46,9 +46,9 @@ def get_user_by_login(login: str, db: Session = Depends(get_db)):
     
     return user
 
-@app.delete("/users/{login}", response_model=schemas.UserBase)
-def delete_user(login: str, db: Session = Depends(get_db)):
-    deleted_entry = crud.delete_user_by_login(db, login)
+@app.delete("/users/{id}", response_model=schemas.User)
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    deleted_entry = crud.delete_user_by_id(db, user_id)
     if deleted_entry is None:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -90,10 +90,13 @@ def create_message(session_id: int, message: schemas.ChatMessageCreate, db: Sess
     messages = [{"role": msg.role, "content": msg.content} for msg in session.messages]
     messages.append({"role": "user", "content": message.content})
     
-    response_content = assistant(messages, glossary)
+    response_content, input_token_count, output_token_count = assistant(messages, glossary)
+
+    crud.increment_user_tokens(db, session.user_id, input_token_count, output_token_count)
     
     response_message = schemas.ChatMessageBase(role="assistant", content=response_content)
     input_message = schemas.ChatMessageBase(role="user", content=message.content)
+
     crud.create_chat_message(db=db, message=input_message, session_id=session_id)
     return crud.create_chat_message(db=db, message=response_message, session_id=session_id)
 

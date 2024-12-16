@@ -5,7 +5,7 @@ from schemas import User
 
 st.title("Авторизация")
 
-ROLES = [None, "User", "Admin"]
+ROLES = [None, "user", "admin"]
 
 if "action" not in st.session_state:
     st.session_state.action = None

@@ -1,5 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
+
+from loguru import logger
+
 from .database import Base
 
 class User(Base):
@@ -7,10 +10,15 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     login = Column(String, unique=True, index=True)
-    role = Column(String)  # "admin" or "user"
+    role = Column(Enum("admin", "user", name="user_role"), nullable=False)  # "admin" or "user"
+    total_input_tokens = Column(Integer, default=0)
+    total_output_tokens = Column(Integer, default=0)
 
     # Связь с ChatSession
     chat_sessions = relationship("ChatSession", back_populates="user")
+
+    def __repr__(self):
+        logger.info(f"User#{self.id} (login: {self.login}, role: {self.role})")
 
 class ChatSession(Base):
     __tablename__ = "chat_sessions"

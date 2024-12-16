@@ -41,14 +41,18 @@ class Assistant:
     ):
 
         system_promt = self.make_system_promt(glossary_list)
-        print(system_promt)
 
         response = self._client.chat.completions.create(
             model=self._model,
             messages=[{"role": "system", "content": system_promt}] + messages,
             temperature=self._temperature,
         )
-        return response.choices[0].message.content
+
+        answer = response.choices[0].message.content
+        input_token_count = response.usage.prompt_tokens
+        output_token_count = response.usage.completion_tokens
+
+        return answer, input_token_count, output_token_count
 
     def make_system_promt(self, glossary_list: list[Glossary]):
         # return (
@@ -80,17 +84,6 @@ class Assistant:
         buffer = make_buffer(dataset)
 
         self._client.files.create(file=buffer, purpose="fine-tune")
-
-        # self._client.fine_tuning.jobs.create(
-        #     training_file=file_obj.id,
-        #     model=self._finetune_model,
-        # )
-
-        #     # Сохраните в JSONL формате
-        # with open("training_data.jsonl", "w", encoding="utf-8") as f:
-        #     for messages in dataset:
-        #         json_line = json.dumps(messages, ensure_ascii=False)
-        #         f.write(json_line + "\n")
 
     def num_tokens_from_string(self, string: str) -> int:
         """Returns the number of tokens in a text string."""

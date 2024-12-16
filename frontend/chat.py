@@ -5,7 +5,10 @@ st.title("Чат")
 
 # Initialize session state
 if 'session_id' not in st.session_state:
-    response = requests.post('http://localhost:8000/sessions/', json={'user_id': 'user1'})
+    if 'user' not in st.session_state:
+        raise Exception("Creation of a session is impossible because the user was not initialized.")
+    
+    response = requests.post('http://localhost:8000/sessions/', json={'user_id': st.session_state.user.id})
     st.session_state.session_id = response.json()['id']
 
 if "messages" not in st.session_state:
