@@ -10,3 +10,4 @@ aiofiles
 python-dotenv
 PyYAML
 tiktoken
+loguru
