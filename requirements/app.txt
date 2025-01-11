@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 sqlalchemy
+aiosqlite
 psycopg2-binary
 openai
 alembic

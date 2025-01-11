@@ -24,8 +24,7 @@ class ChatSession(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
-    # user_id = Column(String, index=True)
-    messages = relationship("ChatMessage", back_populates="session")
+    messages = relationship("ChatMessage", back_populates="session", lazy="selectin")
 
     # Связь с User
     user = relationship("User", back_populates="chat_sessions")

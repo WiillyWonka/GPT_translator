@@ -2,7 +2,7 @@ import io
 import json
 from typing import Dict, List
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
 from loguru import logger
 import tiktoken
 
@@ -27,7 +27,7 @@ class Assistant:
         max_output_token: int,
         context_window: int,
     ):
-        self._client = OpenAI()
+        self._client = AsyncOpenAI()
         self._model = model
         self._policy = policy
         self._temperature = temperature
@@ -36,15 +36,14 @@ class Assistant:
 
         logger.info(self._policy)
 
-    def __call__(
+    async def __call__(
         self, messages: List[Dict[str, str]], glossary_list: list[Glossary]
     ):
+        system_prompt = self.make_system_prompt(glossary_list)
 
-        system_promt = self.make_system_promt(glossary_list)
-
-        response = self._client.chat.completions.create(
+        response = await self._client.chat.completions.create(
             model=self._model,
-            messages=[{"role": "system", "content": system_promt}] + messages,
+            messages=[{"role": "system", "content": system_prompt}] + messages,
             temperature=self._temperature,
         )
 
@@ -54,36 +53,34 @@ class Assistant:
 
         return answer, input_token_count, output_token_count
 
-    def make_system_promt(self, glossary_list: list[Glossary]):
-        # return (
-        #     self._policy
-        #     + "\nГлоссарий:\n"
-        #     + "\n".join(
-        #         [
-        #             format_glossary_item(glossary_item)
-        #             for glossary_item in glossary_list
-        #         ]
-        #     )
-        #     + "\n"
-        # )
+    def make_system_prompt(self, glossary_list: list[Glossary]):
+        return (
+            self._policy
+            + "\nГлоссарий:\n"
+            + "\n".join(
+                [
+                    format_glossary_item(glossary_item)
+                    for glossary_item in glossary_list
+                ]
+            )
+            + "\n"
+        )
 
-        return self._policy
-
-    def upload_dataset(
+    async def upload_dataset(
         self,
         train_samples: list[schemas.TrainSample],
         glossary_list: list[Glossary],
     ):
-        system_promt = self.make_system_promt(glossary_list)
+        system_prompt = self.make_system_prompt(glossary_list)
 
         dataset = []
         for train_sample in train_samples:
-            messages = self.make_messages(train_sample, system_promt)
+            messages = self.make_messages(train_sample, system_prompt)
             dataset.append({"messages": messages})
 
         buffer = make_buffer(dataset)
 
-        self._client.files.create(file=buffer, purpose="fine-tune")
+        await self._client.files.create(file=buffer, purpose="fine-tune")
 
     def num_tokens_from_string(self, string: str) -> int:
         """Returns the number of tokens in a text string."""
@@ -92,9 +89,9 @@ class Assistant:
         return num_tokens
 
     def make_messages(
-        self, train_sample: schemas.TrainSample, system_promt: str
+        self, train_sample: schemas.TrainSample, system_prompt: str
     ):
-        messages = [{"role": "system", "content": system_promt}]
+        messages = [{"role": "system", "content": system_prompt}]
 
         messages.append(
             {"role": "user", "content": train_sample.foreign_text}
@@ -124,7 +121,7 @@ class Assistant:
                     raise Exception(
                         f"Translation chunk is empty. Training sample ID = {train_sample.id}.\nRemove this sample from dataset."
                     )
-                
+
                 assistant_message = self._make_assistant_translation_message(
                     accumulated_translation,
                     is_first_paragraph,
@@ -161,8 +158,8 @@ class Assistant:
     def _make_assistant_translation_message(
         self, translation, is_first_paragraph=False, is_last_paragraph=False
     ):
-        preffix_start = "Начинаю перевод текста."
-        preffix_mid = "Перевожу дальше."
+        prefix_start = "Начинаю перевод текста."
+        prefix_mid = "Перевожу дальше."
         suffix_mid = "Переведена часть текста. Пожалуйста, дайте знать, чтобы я продолжил перевод."
         suffix_end = "Конец текста. Перевод завершён."
         translation_template = "{translation}"
@@ -174,9 +171,9 @@ class Assistant:
             pass
         else:
             if is_first_paragraph:
-                assistant_template = "\n".join([preffix_start, assistant_template])
+                assistant_template = "\n".join([prefix_start, assistant_template])
             else:
-                assistant_template = "\n".join([preffix_mid, assistant_template])
+                assistant_template = "\n".join([prefix_mid, assistant_template])
 
             if is_last_paragraph:
                 assistant_template = "\n".join([assistant_template, suffix_end])
@@ -189,15 +186,15 @@ class Assistant:
 
 
 def make_buffer(messages: List[Dict]):
-    # Создаем объект io.StringIO для хранения содержимого файла в памяти
+    # Создаем объект io.BytesIO для хранения содержимого файла в памяти
     buffer = io.BytesIO()
 
-    # Записываем данные в объект io.StringIO в формате JSONL
+    # Записываем данные в объект io.BytesIO в формате JSONL
     for item in messages:
         json_line = json.dumps(item, ensure_ascii=False).encode('utf-8') + b"\n"
         buffer.write(json_line)
 
-    # Перемещаем указатель в начало объекта io.StringIO
+    # Перемещаем указатель в начало объекта io.BytesIO
     buffer.seek(0)
     return buffer
 
@@ -210,5 +207,6 @@ def join_chunks(chunks: List[str]):
     if len(chunks) == 1:
         return chunks[0]
     else:
-        if chunks[0] == "": chunks = chunks[1:]
+        if chunks[0] == "":
+            chunks = chunks[1:]
         return "\n".join(chunks)
